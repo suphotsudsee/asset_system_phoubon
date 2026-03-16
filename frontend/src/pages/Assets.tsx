@@ -39,7 +39,7 @@ export default function Assets() {
         { id: 5, asset_code: 'AST-2024-005', name: 'เครื่องปรับอากาศ', category: 'เครื่องใช้ไฟฟ้า', department: 'IT', status: 'active', location: 'ห้อง 101', purchase_date: '2024-02-15', purchase_price: 12000 },
       ]
       setAssets(mockAssets)
-      toast.error('Using mock data (API unavailable)')
+      toast.error(error.response?.data?.detail || 'Failed to load assets')
       setLoading(false)
     }
   }
@@ -77,7 +77,7 @@ export default function Assets() {
         // Fallback to mock update
         setAssets(assets.map(a => a.id === editAsset.id ? editAsset : a))
         localStorage.setItem('assets', JSON.stringify(assets.map(a => a.id === editAsset.id ? editAsset : a)))
-        toast.success('Asset updated! (Local mode)')
+        toast.success('Asset updated locally')
       }
       setShowEditModal(false)
       setEditAsset(null)

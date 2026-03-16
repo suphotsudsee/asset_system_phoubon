@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     ROLES: dict[str, list[str]] = {
         "admin": ["create", "read", "update", "delete", "manage_users"],
         "manager": ["create", "read", "update"],
+        "asset_manager": ["create", "read", "update"],
+        "agency_admin": ["create", "read", "update", "delete", "manage_users"],
         "staff": ["read"],
+        "viewer": ["read"],
     }
     
     # AI/ML Settings

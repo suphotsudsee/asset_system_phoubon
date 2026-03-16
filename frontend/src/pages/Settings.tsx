@@ -76,7 +76,7 @@ export default function Settings() {
         ]
         setUsers(mockUsers)
       }
-      toast.error('Using mock data (API unavailable)')
+      toast.error(error.response?.data?.detail || 'Failed to load settings data')
     } finally {
       setLoading(false)
     }
@@ -151,7 +151,7 @@ export default function Settings() {
         } else if (editItem.type === 'user') {
           setUsers(users.map(u => u.id === editItem.id ? editItem : u))
         }
-        toast.success(`${editItem.type} updated! (Local mode)`)
+        toast.success(`${editItem.type} updated locally`)
       }
       setShowEditModal(false)
       setEditItem(null)
