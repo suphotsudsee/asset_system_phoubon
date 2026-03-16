@@ -1,0 +1,29 @@
+# FastAPI and server
+fastapi
+uvicorn
+python-multipart
+
+# Database - MySQL
+sqlalchemy
+aiomysql
+
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt
+
+# Validation
+pydantic
+pydantic-settings
+email-validator
+
+# QR Code
+qrcode
+
+# Utilities
+python-dateutil
+httpx
+python-dotenv
+
+# Logging
+python-json-logger
