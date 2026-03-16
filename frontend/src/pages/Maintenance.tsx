@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 // Mock data
 const mockMaintenance = [
@@ -17,6 +18,8 @@ export default function Maintenance() {
   const [statusFilter, setStatusFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editMaintenance, setEditMaintenance] = useState<any>(null)
   const [newMaintenance, setNewMaintenance] = useState({
     asset_code: '',
     asset_name: '',
@@ -40,7 +43,7 @@ export default function Maintenance() {
   const handleSchedule = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMaintenance.asset_code || !newMaintenance.technician) {
-      alert('Please fill required fields')
+      toast.error('Please fill required fields')
       return
     }
     
@@ -51,7 +54,7 @@ export default function Maintenance() {
       cost: parseInt(newMaintenance.cost) || 0,
     }])
     
-    alert('Maintenance scheduled successfully!')
+    toast.success('Maintenance scheduled!')
     setShowScheduleModal(false)
     setNewMaintenance({
       asset_code: '',
@@ -63,6 +66,21 @@ export default function Maintenance() {
       technician: '',
       description: '',
     })
+  }
+
+  const handleEdit = (item: any) => {
+    setEditMaintenance({ ...item })
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editMaintenance) return
+    
+    setData(data.map(m => m.id === editMaintenance.id ? editMaintenance : m))
+    toast.success('Maintenance updated!')
+    setShowEditModal(false)
+    setEditMaintenance(null)
   }
 
   return (
@@ -134,6 +152,7 @@ export default function Maintenance() {
               <th style={{ padding: '1rem', textAlign: 'left', color: '#888', fontSize: '0.875rem' }}>Scheduled Date</th>
               <th style={{ padding: '1rem', textAlign: 'left', color: '#888', fontSize: '0.875rem' }}>Technician</th>
               <th style={{ padding: '1rem', textAlign: 'right', color: '#888', fontSize: '0.875rem' }}>Cost</th>
+              <th style={{ padding: '1rem', textAlign: 'center', color: '#888', fontSize: '0.875rem' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -156,6 +175,9 @@ export default function Maintenance() {
                 <td style={{ padding: '1rem', color: '#888' }}>{item.scheduled_date}</td>
                 <td style={{ padding: '1rem', color: '#fff' }}>{item.technician}</td>
                 <td style={{ padding: '1rem', textAlign: 'right', color: '#22c55e', fontWeight: 'bold' }}>{item.cost.toLocaleString()} ฿</td>
+                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                  <button onClick={() => handleEdit(item)} style={{ color: '#646cff', background: 'none', border: 'none', cursor: 'pointer' }}>Edit</button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -255,7 +277,6 @@ export default function Maintenance() {
                 <textarea
                   value={newMaintenance.description}
                   onChange={(e) => setNewMaintenance({ ...newMaintenance, description: e.target.value })}
-                  placeholder="e.g., Regular maintenance check..."
                   rows={3}
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', resize: 'vertical' }}
                 />
@@ -266,6 +287,108 @@ export default function Maintenance() {
                 </button>
                 <button type="submit" style={{ padding: '0.75rem 1.5rem', borderRadius: '4px', border: 'none', background: '#22c55e', color: 'white', cursor: 'pointer', fontWeight: '500' }}>
                   Schedule
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Maintenance Modal */}
+      {showEditModal && editMaintenance && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '500px', maxHeight: '80vh', overflow: 'auto' }}>
+            <h3 style={{ color: '#fff', marginBottom: '1.5rem' }}>✏️ Edit Maintenance</h3>
+            <form onSubmit={handleSaveEdit}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Asset Code</label>
+                <input
+                  type="text"
+                  value={editMaintenance.asset_code}
+                  onChange={(e) => setEditMaintenance({ ...editMaintenance, asset_code: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Asset Name</label>
+                <input
+                  type="text"
+                  value={editMaintenance.asset_name}
+                  onChange={(e) => setEditMaintenance({ ...editMaintenance, asset_name: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Type</label>
+                  <select
+                    value={editMaintenance.type}
+                    onChange={(e) => setEditMaintenance({ ...editMaintenance, type: e.target.value })}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                  >
+                    <option value="preventive">Preventive</option>
+                    <option value="corrective">Corrective</option>
+                    <option value="emergency">Emergency</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Status</label>
+                  <select
+                    value={editMaintenance.status}
+                    onChange={(e) => setEditMaintenance({ ...editMaintenance, status: e.target.value })}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Scheduled Date</label>
+                  <input
+                    type="date"
+                    value={editMaintenance.scheduled_date}
+                    onChange={(e) => setEditMaintenance({ ...editMaintenance, scheduled_date: e.target.value })}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Cost (฿)</label>
+                  <input
+                    type="number"
+                    value={editMaintenance.cost}
+                    onChange={(e) => setEditMaintenance({ ...editMaintenance, cost: parseInt(e.target.value) })}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Technician</label>
+                <input
+                  type="text"
+                  value={editMaintenance.technician}
+                  onChange={(e) => setEditMaintenance({ ...editMaintenance, technician: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+                />
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Description</label>
+                <textarea
+                  value={editMaintenance.description}
+                  onChange={(e) => setEditMaintenance({ ...editMaintenance, description: e.target.value })}
+                  rows={3}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', resize: 'vertical' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => { setShowEditModal(false); setEditMaintenance(null); }} style={{ padding: '0.75rem 1.5rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button type="submit" style={{ padding: '0.75rem 1.5rem', borderRadius: '4px', border: 'none', background: '#646cff', color: 'white', cursor: 'pointer', fontWeight: '500' }}>
+                  Save Changes
                 </button>
               </div>
             </form>

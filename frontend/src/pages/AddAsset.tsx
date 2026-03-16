@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import toast from 'react-hot-toast'
+import { assetsApi } from '../lib/api'
 
 const categories = ['คอมพิวเตอร์', 'เครื่องพิมพ์', 'เฟอร์นิเจอร์', 'เครื่องใช้ไฟฟ้า', 'ยานพาหนะ', 'อุปกรณ์สำนักงาน', 'อื่นๆ']
 const departments = ['IT', 'Admin', 'HR', 'Finance', 'Operations', 'Sales', 'Marketing']
@@ -10,7 +11,7 @@ const depreciationMethods = ['straight_line', 'declining_balance']
 
 export default function AddAsset() {
   const navigate = useNavigate()
-  const user = useAuthStore((state) => state.user)
+  const { token } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     asset_code: '',
@@ -21,8 +22,8 @@ export default function AddAsset() {
     location: '',
     condition: 'good',
     purchase_date: '',
-    purchase_price: '',
-    useful_life_years: '',
+    purchase_price: 0,
+    useful_life_years: 5,
     depreciation_method: 'straight_line',
     description: '',
     image: '',
@@ -59,15 +60,32 @@ export default function AddAsset() {
       return
     }
 
-    // Mock success (API not ready)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Prepare data for API
+      const assetData = {
+        asset_code: formData.asset_code,
+        name: formData.name,
+        serial_number: formData.serial_number || null,
+        category: formData.category,
+        department: formData.department,
+        location: formData.location,
+        condition: formData.condition,
+        purchase_date: formData.purchase_date,
+        purchase_price: parseFloat(formData.purchase_price) || 0,
+        useful_life_years: parseInt(formData.useful_life_years) || 5,
+        depreciation_method: formData.depreciation_method,
+        description: formData.description || null,
+        image_url: formData.image || null,
+      }
+
+      // Call API
+      await assetsApi.create(assetData)
       
-      toast.success('Asset created successfully! (Demo mode)')
+      toast.success('Asset created successfully!')
       navigate('/assets')
-    } catch (error) {
-      toast.error('Failed to create asset')
+    } catch (error: any) {
+      console.error('Failed to create asset:', error)
+      toast.error(error.response?.data?.detail || 'Failed to create asset')
     } finally {
       setLoading(false)
     }
@@ -80,18 +98,12 @@ export default function AddAsset() {
           ← Back to Assets
         </button>
         <h1 style={{ color: '#fff' }}>➕ Add New Asset</h1>
-        <p style={{ color: '#888' }}>Create a new asset record in the system</p>
       </div>
 
       <form onSubmit={handleSubmit} style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px' }}>
-        {/* Basic Info */}
-        <h3 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>Basic Information</h3>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Asset Code <span style={{ color: '#f59e0b' }}>*</span>
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Asset Code *</label>
             <input
               type="text"
               name="asset_code"
@@ -102,42 +114,34 @@ export default function AddAsset() {
               required
             />
           </div>
-
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Serial Number
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Name *</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g., คอมพิวเตอร์ Dell"
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+              required
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Serial Number</label>
             <input
               type="text"
               name="serial_number"
               value={formData.serial_number}
               onChange={handleChange}
-              placeholder="Manufacturer serial number"
+              placeholder="e.g., DPX123456"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
             />
           </div>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-            Asset Name <span style={{ color: '#f59e0b' }}>*</span>
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="e.g., คอมพิวเตอร์ Dell OptiPlex"
-            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
-            required
-          />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Category <span style={{ color: '#f59e0b' }}>*</span>
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Category *</label>
             <select
               name="category"
               value={formData.category}
@@ -145,64 +149,58 @@ export default function AddAsset() {
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
               required
             >
-              <option value="">Select category</option>
-              {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              <option value="">Select Category</option>
+              {categories.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
+        </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Department <span style={{ color: '#f59e0b' }}>*</span>
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Department</label>
             <select
               name="department"
               value={formData.department}
               onChange={handleChange}
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
-              required
             >
-              <option value="">Select department</option>
-              {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+              <option value="">Select Department</option>
+              {departments.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
             </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Location</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g., ห้อง 101"
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+            />
           </div>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-            Location
-          </label>
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            placeholder="e.g., ห้อง 101, อาคาร A"
-            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
-          />
-        </div>
-
-        {/* Asset Details */}
-        <h3 style={{ color: '#fff', marginBottom: '1.5rem', borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>Asset Details</h3>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Condition
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Condition</label>
             <select
               name="condition"
               value={formData.condition}
               onChange={handleChange}
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
             >
-              {conditions.map(cond => <option key={cond} value={cond}>{cond}</option>)}
+              {conditions.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
-
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Purchase Date
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Purchase Date</label>
             <input
               type="date"
               name="purchase_date"
@@ -213,11 +211,9 @@ export default function AddAsset() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Purchase Price (฿) <span style={{ color: '#f59e0b' }}>*</span>
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Purchase Price (฿)</label>
             <input
               type="number"
               name="purchase_price"
@@ -225,14 +221,10 @@ export default function AddAsset() {
               onChange={handleChange}
               placeholder="e.g., 25000"
               style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
-              required
             />
           </div>
-
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-              Useful Life (years)
-            </label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Useful Life (Years)</label>
             <input
               type="number"
               name="useful_life_years"
@@ -244,90 +236,61 @@ export default function AddAsset() {
           </div>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-            Depreciation Method
-          </label>
-          <select
-            name="depreciation_method"
-            value={formData.depreciation_method}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
-          >
-            {depreciationMethods.map(method => <option key={method} value={method}>{method.replace('_', ' ')}</option>)}
-          </select>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-            Image
-          </label>
-          <div style={{ background: '#2a2a2a', padding: '1rem', borderRadius: '4px', border: '1px dashed #333' }}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              style={{ marginBottom: '1rem' }}
-            />
-            {imagePreview && (
-              <div style={{ marginTop: '1rem', textAlign: 'center' }}>
-                <img 
-                  src={imagePreview} 
-                  alt="Preview" 
-                  style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '4px' }}
-                />
-                <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#888' }}>
-                  {imageFile?.name} ({(imageFile?.size || 0 / 1024).toFixed(0)} KB)
-                </p>
-              </div>
-            )}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Depreciation Method</label>
+            <select
+              name="depreciation_method"
+              value={formData.depreciation_method}
+              onChange={handleChange}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+            >
+              {depreciationMethods.map(m => (
+                <option key={m} value={m}>{m.replace('_', ' ')}</option>
+              ))}
+            </select>
           </div>
-          <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#888' }}>
-            Upload image from your computer (JPG, PNG, GIF - max 5MB)
-          </p>
         </div>
 
-        {/* Description */}
-        <div style={{ marginBottom: '2rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>
-            Description
-          </label>
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Description</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Additional notes about the asset..."
-            rows={4}
+            placeholder="e.g., คอมพิวเตอร์สำนักงานสำหรับพนักงาน IT"
+            rows={3}
             style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', resize: 'vertical' }}
           />
         </div>
 
-        {/* Actions */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#888', fontSize: '0.875rem' }}>Image</label>
+          {imagePreview && (
+            <img src={imagePreview} alt="Preview" style={{ maxWidth: '200px', borderRadius: '8px', marginBottom: '0.5rem' }} />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}
+          />
+          <p style={{ fontSize: '0.875rem', color: '#888', marginTop: '0.5rem' }}>Upload image from your computer (optional)</p>
+        </div>
+
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            onClick={() => navigate('/assets')}
-            style={{ padding: '0.75rem 1.5rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', cursor: 'pointer' }}
-          >
+          <button type="button" onClick={() => navigate('/assets')} style={{ padding: '0.75rem 1.5rem', borderRadius: '4px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', cursor: 'pointer' }}>
             Cancel
           </button>
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             disabled={loading}
-            style={{ padding: '0.75rem 2rem', borderRadius: '4px', border: 'none', background: loading ? '#666' : '#22c55e', color: 'white', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: '500' }}
+            style={{ padding: '0.75rem 1.5rem', borderRadius: '4px', border: 'none', background: '#22c55e', color: 'white', cursor: 'pointer', fontWeight: '500', opacity: loading ? 0.5 : 1 }}
           >
             {loading ? 'Creating...' : 'Create Asset'}
           </button>
         </div>
       </form>
-
-      {/* Info */}
-      <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#1a1a1a', borderRadius: '8px', borderLeft: '4px solid #646cff' }}>
-        <h4 style={{ color: '#fff', marginBottom: '0.5rem' }}>ℹ️ Demo Mode</h4>
-        <p style={{ color: '#888', fontSize: '0.875rem' }}>
-          Form validation is working. Asset creation will be saved to database when backend API is connected.
-        </p>
-      </div>
     </div>
   )
 }

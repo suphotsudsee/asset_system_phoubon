@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
@@ -29,13 +29,15 @@ class Asset(Base):
     status = Column(String(50), default="active")  # active, inactive, disposed, maintenance
     condition = Column(String(50), default="good")  # excellent, good, fair, poor
     
+    # Agency isolation
+    agency_id = Column(Integer, index=True, nullable=True)
+    
     # QR code
     qr_code_path = Column(String(500))
     
-    # Relationships
+    # Relationships - deferred to avoid circular import
     depreciation_records = relationship("DepreciationRecord", back_populates="asset", cascade="all, delete-orphan")
     maintenance_records = relationship("MaintenanceRecord", back_populates="asset", cascade="all, delete-orphan")
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
