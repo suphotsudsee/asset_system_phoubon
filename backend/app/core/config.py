@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from typing import Annotated
 from functools import lru_cache
 
@@ -56,7 +57,9 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(
+        env_file=str(Path(__file__).resolve().parents[2] / ".env")
+    )
 
 
 @lru_cache()

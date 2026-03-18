@@ -28,7 +28,7 @@ class AssetBase(BaseModel):
     """Base schema for asset."""
     name: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = None
-    category_id: Optional[int] = None
+    category: Optional[str] = None
     serial_number: Optional[str] = None
     purchase_price: float = Field(..., gt=0)
     purchase_date: Optional[datetime] = None
@@ -38,7 +38,7 @@ class AssetBase(BaseModel):
     location: Optional[str] = None
     department: Optional[str] = None
     status: AssetStatus = AssetStatus.active
-    asset_condition: AssetCondition = AssetCondition.good
+    condition: AssetCondition = AssetCondition.good
 
 
 class AssetCreate(AssetBase):
@@ -50,13 +50,13 @@ class AssetUpdate(BaseModel):
     """Schema for updating asset."""
     name: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = None
-    category_id: Optional[int] = None
+    category: Optional[str] = None
     serial_number: Optional[str] = None
     purchase_price: Optional[float] = Field(None, gt=0)
     location: Optional[str] = None
     department: Optional[str] = None
     status: Optional[AssetStatus] = None
-    asset_condition: Optional[AssetCondition] = None
+    condition: Optional[AssetCondition] = None
 
 
 class AssetResponse(AssetBase):
